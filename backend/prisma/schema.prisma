@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       String   @default("STUDENT") // STUDENT, STAFF, ADMIN
+  mobile     String?
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  cartItems  CartItem[]
+  orders     Order[]
+  notifications Notification[]
+  savedAddresses SavedAddress[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  price       Float
+  weight      String?
+  description String?
+  stock       Int      @default(0)
+  imageUrl    String?
+  
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int     @default(1)
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  totalAmount   Float
+  status        String   @default("PLACED") // PLACED, ACCEPTED, PREPARING, PACKED, ON_THE_WAY, DELIVERED, CANCELLED
+  paymentStatus String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  paymentMode   String   @default("ONLINE") // ONLINE, COD
+  paymentId     String?
+  estimatedTime String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  cancellationReason String?
+  cancelledBy        String?
+  cancelledAt        DateTime?
+
+  orderItems    OrderItem[]
+  address       Address?
+}
+
+model SavedAddress {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  building     String
+  floor        String?
+  room         String
+  instructions String?
+  mobileNumber String?
+  createdAt    DateTime @default(now())
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model Address {
+  id           String @id @default(uuid())
+  orderId      String @unique
+  order        Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  building     String
+  room         String
+  instructions String?
+  mobileNumber String?
+}
+
+model Coupon {
+  id             String   @id @default(uuid())
+  code           String   @unique
+  discountAmount Float
+  minOrderValue  Float    @default(0)
+  expiryDate     DateTime?
+  isActive       Boolean  @default(true)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
