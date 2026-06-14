@@ -142,9 +142,10 @@ const Cart = () => {
 
   const itemTotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   const platformFee = settings.platformFee;
-  const freeDeliveryLimit = settings.freeDeliveryThreshold ?? 149;
-  const deliveryFee = itemTotal >= freeDeliveryLimit ? 0 : settings.deliveryFee;
   const gst = itemTotal * (settings.gstPercent / 100);
+  const eligibleTotal = itemTotal + platformFee + gst;
+  const freeDeliveryLimit = settings.freeDeliveryThreshold ?? 149;
+  const deliveryFee = eligibleTotal >= freeDeliveryLimit ? 0 : settings.deliveryFee;
   let discount = 0;
 
   if (appliedCoupon) {
@@ -522,7 +523,7 @@ const Cart = () => {
                       <span>Delivery Fee</span>
                       {deliveryFee > 0 && (
                         <span className="text-xs text-primary-500 font-bold mt-0.5">
-                          Add ₹{(freeDeliveryLimit - itemTotal).toFixed(2)} more for FREE delivery!
+                          Add ₹{(freeDeliveryLimit - eligibleTotal).toFixed(2)} more for FREE delivery!
                         </span>
                       )}
                     </div>
@@ -551,10 +552,10 @@ const Cart = () => {
               </div>
 
               <div className="mt-6 text-center">
-                  {itemTotal >= freeDeliveryLimit ? (
+                  {eligibleTotal >= freeDeliveryLimit ? (
                     <p className="text-xs font-extrabold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 py-2 rounded-xl border border-green-100 dark:border-green-900/50 tracking-wider">FREE DELIVERY APPLIED</p>
                   ) : (
-                    <p className="text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 py-2 rounded-xl border border-orange-100 dark:border-orange-900/50">Add ₹{(freeDeliveryLimit - itemTotal).toFixed(2)} more to get FREE delivery</p>
+                    <p className="text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 py-2 rounded-xl border border-orange-100 dark:border-orange-900/50">Add ₹{(freeDeliveryLimit - eligibleTotal).toFixed(2)} more to get FREE delivery</p>
                   )}
               </div>
 
