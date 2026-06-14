@@ -551,11 +551,11 @@ const Cart = () => {
               </div>
 
               <div className="mt-6 text-center">
-                {itemTotal >= 100 ? (
-                  <p className="text-xs font-extrabold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 py-2 rounded-xl border border-green-100 dark:border-green-900/50 tracking-wider">FREE DELIVERY APPLIED</p>
-                ) : (
-                  <p className="text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 py-2 rounded-xl border border-orange-100 dark:border-orange-900/50">Add ₹{100 - itemTotal} more to get FREE delivery</p>
-                )}
+                  {itemTotal >= freeDeliveryLimit ? (
+                    <p className="text-xs font-extrabold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 py-2 rounded-xl border border-green-100 dark:border-green-900/50 tracking-wider">FREE DELIVERY APPLIED</p>
+                  ) : (
+                    <p className="text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 py-2 rounded-xl border border-orange-100 dark:border-orange-900/50">Add ₹{(freeDeliveryLimit - itemTotal).toFixed(2)} more to get FREE delivery</p>
+                  )}
               </div>
 
               {settings?.isMaintenance ? (
