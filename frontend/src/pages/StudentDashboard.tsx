@@ -82,19 +82,25 @@ const StudentDashboard = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [settings, setSettings] = useState<any>(null);
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const response = await apiClient.get('/products');
-        setProducts(response.data);
+        const [prodRes, settingsRes] = await Promise.all([
+          apiClient.get('/products'),
+          apiClient.get('/settings')
+        ]);
+        setProducts(prodRes.data);
+        setSettings(settingsRes.data);
       } catch (error) {
-        toast.error('Failed to load products');
-        console.error('Failed to fetch products', error);
+        toast.error('Failed to load data');
+        console.error('Failed to fetch data', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   const handleAddToCart = async (productId: string) => {
@@ -165,6 +171,21 @@ const StudentDashboard = () => {
           </select>
         </div>
       </div>
+      
+      {settings?.isMaintenance && (
+        <div className="mb-8 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800/50 rounded-3xl relative overflow-hidden group">
+          <div className="absolute -right-10 -top-10 w-32 h-32 bg-red-100 dark:bg-red-800/30 rounded-full blur-3xl opacity-50 group-hover:scale-110 transition-transform"></div>
+          <h3 className="text-xl font-extrabold text-red-700 dark:text-red-400 flex items-center mb-2">
+            <span className="mr-2 text-2xl">⚠️</span> Canteen is Unavailable
+          </h3>
+          <p className="text-red-600 dark:text-red-300 font-medium">{settings.maintenanceReason || 'Under Maintenance'}</p>
+          {settings.maintenanceInfo && (
+            <p className="text-sm mt-2 text-red-500 dark:text-red-400 font-bold bg-white/50 dark:bg-red-950/50 p-3 rounded-xl border border-red-100 dark:border-red-800/30 italic">
+              "{settings.maintenanceInfo}"
+            </p>
+          )}
+        </div>
+      )}
       
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
         {filteredProducts.map(product => (

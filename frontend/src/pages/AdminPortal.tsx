@@ -39,6 +39,9 @@ interface Settings {
   deliveryFee: number;
   platformFee: number;
   gstPercent: number;
+  isMaintenance?: boolean;
+  maintenanceReason?: string | null;
+  maintenanceInfo?: string | null;
 }
 
 const AdminPortal = () => {
@@ -60,7 +63,8 @@ const AdminPortal = () => {
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [editSettings, setEditSettings] = useState<Settings>({ deliveryFee: 0, platformFee: 0, gstPercent: 0 });
+  const [editingSettingKey, setEditingSettingKey] = useState<'deliveryFee' | 'platformFee' | 'gstPercent' | null>(null);
+  const [singleSettingValue, setSingleSettingValue] = useState<string>('');
   
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' });
@@ -155,8 +159,9 @@ const AdminPortal = () => {
     setIsCouponModalOpen(true);
   };
 
-  const handleOpenEditSettings = () => {
-    setEditSettings(settings);
+  const handleOpenEditSingleSetting = (key: 'deliveryFee' | 'platformFee' | 'gstPercent') => {
+    setEditingSettingKey(key);
+    setSingleSettingValue(settings[key].toString());
     setIsSettingsModalOpen(true);
   };
 
@@ -211,15 +216,42 @@ const AdminPortal = () => {
     }
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
+  const handleSaveSingleSetting = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingSettingKey) return;
     try {
-      await apiClient.put('/settings', editSettings);
-      setSettings(editSettings);
+      const updatedSettings = { ...settings, [editingSettingKey]: parseFloat(singleSettingValue) };
+      await apiClient.put('/settings', updatedSettings);
+      setSettings(updatedSettings);
       setIsSettingsModalOpen(false);
-      toast.success('Settings updated successfully');
+      setEditingSettingKey(null);
+      toast.success('Setting updated successfully');
     } catch (error) {
-      toast.error('Failed to update settings');
+      toast.error('Failed to update setting');
+    }
+  };
+
+  const handleToggleMaintenance = async (checked: boolean) => {
+    try {
+      const updatedSettings = { ...settings, isMaintenance: checked };
+      if (checked && !updatedSettings.maintenanceReason) {
+        updatedSettings.maintenanceReason = 'Kitchen Closed';
+      }
+      await apiClient.put('/settings', updatedSettings);
+      setSettings(updatedSettings);
+      toast.success(checked ? 'Maintenance Mode Enabled' : 'Maintenance Mode Disabled');
+    } catch (error) {
+      toast.error('Failed to update maintenance mode');
+    }
+  };
+
+  const handleUpdateMaintenanceDetails = async (reason: string, info: string) => {
+    try {
+      const updatedSettings = { ...settings, maintenanceReason: reason, maintenanceInfo: info };
+      await apiClient.put('/settings', updatedSettings);
+      setSettings(updatedSettings);
+    } catch (error) {
+      toast.error('Failed to update maintenance details');
     }
   };
 
@@ -405,25 +437,88 @@ const AdminPortal = () => {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Global Settings</h1>
-              <button onClick={handleOpenEditSettings} className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-lg hover:shadow-primary-500/40 transition-all hover:scale-[1.02]">
-                <Edit className="w-5 h-5 mr-1.5" /> Edit Settings
-              </button>
             </div>
             {loading ? <div className="text-center py-10 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading settings...</div> : (
-              <ul className="glass-card rounded-3xl divide-y divide-gray-100/50 dark:divide-white/5 max-w-2xl">
-                <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
-                  <span className="font-bold text-gray-900 dark:text-white">Delivery Fee</span>
-                  <span className="text-lg font-extrabold text-gray-900 dark:text-white">₹{settings.deliveryFee}</span>
-                </li>
-                <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
-                  <span className="font-bold text-gray-900 dark:text-white">Platform Fee</span>
-                  <span className="text-lg font-extrabold text-gray-900 dark:text-white">₹{settings.platformFee}</span>
-                </li>
-                <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
-                  <span className="font-bold text-gray-900 dark:text-white">GST (%)</span>
-                  <span className="text-lg font-extrabold text-gray-900 dark:text-white">{settings.gstPercent}%</span>
-                </li>
-              </ul>
+              <div className="max-w-3xl">
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white mb-4">Fees & Taxes</h2>
+                <ul className="glass-card rounded-3xl divide-y divide-gray-100/50 dark:divide-white/5 mb-10">
+                  <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                    <div>
+                      <span className="font-bold text-gray-900 dark:text-white block">Delivery Fee</span>
+                      <span className="text-sm font-medium text-gray-500">Base delivery charge</span>
+                    </div>
+                    <div className="flex items-center space-x-6">
+                      <span className="text-xl font-extrabold text-gray-900 dark:text-white">₹{settings.deliveryFee}</span>
+                      <button onClick={() => handleOpenEditSingleSetting('deliveryFee')} className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"><Edit className="w-5 h-5" /></button>
+                    </div>
+                  </li>
+                  <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                    <div>
+                      <span className="font-bold text-gray-900 dark:text-white block">Platform Fee</span>
+                      <span className="text-sm font-medium text-gray-500">App maintenance charge</span>
+                    </div>
+                    <div className="flex items-center space-x-6">
+                      <span className="text-xl font-extrabold text-gray-900 dark:text-white">₹{settings.platformFee}</span>
+                      <button onClick={() => handleOpenEditSingleSetting('platformFee')} className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"><Edit className="w-5 h-5" /></button>
+                    </div>
+                  </li>
+                  <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                    <div>
+                      <span className="font-bold text-gray-900 dark:text-white block">GST (%)</span>
+                      <span className="text-sm font-medium text-gray-500">Tax percentage</span>
+                    </div>
+                    <div className="flex items-center space-x-6">
+                      <span className="text-xl font-extrabold text-gray-900 dark:text-white">{settings.gstPercent}%</span>
+                      <button onClick={() => handleOpenEditSingleSetting('gstPercent')} className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"><Edit className="w-5 h-5" /></button>
+                    </div>
+                  </li>
+                </ul>
+
+                <h2 className="text-xl font-extrabold text-gray-900 dark:text-white mb-4">Canteen Status</h2>
+                <div className="glass-card rounded-3xl p-6 border border-white/20 dark:border-white/5">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white text-lg">Maintenance Mode / Unavailable</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Shut down operations. Users will see a banner and cannot place orders.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" checked={!!settings.isMaintenance} onChange={e => handleToggleMaintenance(e.target.checked)} />
+                      <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-dark-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-red-500"></div>
+                    </label>
+                  </div>
+                  
+                  {settings.isMaintenance && (
+                    <div className="space-y-4 pt-6 mt-6 border-t border-gray-100 dark:border-white/5">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+                        <select 
+                          className="w-full px-5 py-3 glass-panel rounded-xl outline-none font-medium dark:text-white dark:bg-dark-800"
+                          value={settings.maintenanceReason || 'Kitchen Closed'}
+                          onChange={e => handleUpdateMaintenanceDetails(e.target.value, settings.maintenanceInfo || '')}
+                        >
+                          <option value="System Update">System Update</option>
+                          <option value="Kitchen Closed">Kitchen Closed</option>
+                          <option value="Inventory Check">Inventory Check</option>
+                          <option value="Staff Unavailable">Staff Unavailable</option>
+                          <option value="Technical Issue">Technical Issue</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Additional Information (Optional)</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Back in 30 minutes"
+                          className="w-full px-5 py-3 glass-panel rounded-xl outline-none font-medium dark:text-white"
+                          value={settings.maintenanceInfo || ''}
+                          onChange={e => setSettings({...settings, maintenanceInfo: e.target.value})}
+                          onBlur={e => handleUpdateMaintenanceDetails(settings.maintenanceReason || 'Kitchen Closed', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -474,27 +569,23 @@ const AdminPortal = () => {
         </div>
       )}
 
-      {isSettingsModalOpen && (
+      {isSettingsModalOpen && editingSettingKey && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="glass-card rounded-3xl w-full max-w-sm p-8 border border-white/20">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">Edit Settings</h2>
+              <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">
+                Edit {editingSettingKey === 'deliveryFee' ? 'Delivery Fee' : editingSettingKey === 'platformFee' ? 'Platform Fee' : 'GST (%)'}
+              </h2>
               <button onClick={() => setIsSettingsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><X className="w-7 h-7" /></button>
             </div>
-            <form onSubmit={handleSaveSettings} className="space-y-5">
+            <form onSubmit={handleSaveSingleSetting} className="space-y-5">
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Delivery Fee (₹)</label>
-                <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={editSettings.deliveryFee} onChange={e => setEditSettings({...editSettings, deliveryFee: parseFloat(e.target.value)})} />
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                  New Value {editingSettingKey === 'gstPercent' ? '(%)' : '(₹)'}
+                </label>
+                <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={singleSettingValue} onChange={e => setSingleSettingValue(e.target.value)} />
               </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Platform Fee (₹)</label>
-                <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={editSettings.platformFee} onChange={e => setEditSettings({...editSettings, platformFee: parseFloat(e.target.value)})} />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">GST (%)</label>
-                <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={editSettings.gstPercent} onChange={e => setEditSettings({...editSettings, gstPercent: parseFloat(e.target.value)})} />
-              </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">Save Settings</button>
+              <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">Save</button>
             </form>
           </div>
         </div>

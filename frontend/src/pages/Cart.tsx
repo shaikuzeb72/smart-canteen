@@ -66,7 +66,7 @@ const Cart = () => {
 
   const [address, setAddress] = useState({ building: '', floor: '', room: '', instructions: '', mobileNumber: '' });
 
-  const [settings, setSettings] = useState({ deliveryFee: 10, platformFee: 5, gstPercent: 5 });
+  const [settings, setSettings] = useState<any>({ deliveryFee: 10, platformFee: 5, gstPercent: 5, isMaintenance: false });
 
   useEffect(() => {
     fetchCart();
@@ -550,9 +550,15 @@ const Cart = () => {
                 )}
               </div>
 
-              <button onClick={triggerCheckout} className="w-full mt-6 bg-gradient-to-r from-primary-600 to-primary-500 text-white font-extrabold py-4 rounded-2xl transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:scale-[1.02] flex items-center justify-center text-lg">
-                Place Order (₹{toPay.toFixed(2)})
-              </button>
+              {settings?.isMaintenance ? (
+                  <div className="w-full mt-6 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold py-4 rounded-2xl flex items-center justify-center text-center px-4 border border-red-200 dark:border-red-800/50">
+                    ⚠️ {settings.maintenanceReason || 'Canteen is currently unavailable'}
+                  </div>
+                ) : (
+                  <button onClick={triggerCheckout} className="w-full mt-6 bg-gradient-to-r from-primary-600 to-primary-500 text-white font-extrabold py-4 rounded-2xl transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:scale-[1.02] flex items-center justify-center text-lg">
+                    Place Order (₹{toPay.toFixed(2)})
+                  </button>
+                )}
             </div>
           )}
         </div>

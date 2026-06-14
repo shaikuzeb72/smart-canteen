@@ -7,6 +7,11 @@ const router = Router();
 // Place a new order
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const settings = await prisma.settings.findUnique({ where: { id: 'global' } });
+    if (settings?.isMaintenance) {
+      return res.status(400).json({ message: `Canteen is currently unavailable: ${settings.maintenanceReason || 'Under Maintenance'}` });
+    }
+
     const { totalAmount, paymentStatus, paymentMode, paymentId, address } = req.body;
     const userId = req.user!.id;
 
@@ -28,10 +33,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     }
 
     // Generate Estimated Time
-    const minMins = 10;
-    const maxMins = 30;
+    const minMins = 7;
+    const maxMins = 15;
     const est = Math.floor(Math.random() * (maxMins - minMins + 1) + minMins);
-    const estimatedTime = `Estimated Delivery: ${est}-${est + 5} mins`;
+    const estimatedTime = `Estimated Delivery: ${est}-${est + 2} mins`;
 
     const isCod = paymentMode === 'COD';
 

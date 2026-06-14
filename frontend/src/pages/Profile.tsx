@@ -251,7 +251,7 @@ const Profile = () => {
                 <MapPin className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </div>
               <div className="text-left">
-                <div className="font-bold text-gray-900 dark:text-white">Saved Addresses</div>
+                <div className="font-bold text-gray-900 dark:text-white">Saved Addresses {savedAddresses.length > 0 && `(${savedAddresses.length})`}</div>
               </div>
             </div>
             <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${showAddresses ? 'rotate-90' : ''}`} />
