@@ -58,6 +58,9 @@ const AdminPortal = () => {
   
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
+
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [editSettings, setEditSettings] = useState<Settings>({ deliveryFee: 0, platformFee: 0, gstPercent: 0 });
   
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: '', imageUrl: '', description: '', weight: '' });
   const [newCoupon, setNewCoupon] = useState({ code: '', discountAmount: '', minOrderValue: '' });
@@ -147,6 +150,11 @@ const AdminPortal = () => {
     setIsCouponModalOpen(true);
   };
 
+  const handleOpenEditSettings = () => {
+    setEditSettings(settings);
+    setIsSettingsModalOpen(true);
+  };
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.category) {
@@ -201,7 +209,9 @@ const AdminPortal = () => {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.put('/settings', settings);
+      await apiClient.put('/settings', editSettings);
+      setSettings(editSettings);
+      setIsSettingsModalOpen(false);
       toast.success('Settings updated successfully');
     } catch (error) {
       toast.error('Failed to update settings');
@@ -367,25 +377,27 @@ const AdminPortal = () => {
 
         {activeTab === 'settings' && (
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Global Settings</h1>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Global Settings</h1>
+              <button onClick={handleOpenEditSettings} className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-lg hover:shadow-primary-500/40 transition-all hover:scale-[1.02]">
+                <Edit className="w-5 h-5 mr-1.5" /> Edit Settings
+              </button>
+            </div>
             {loading ? <div className="text-center py-10 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading settings...</div> : (
-              <div className="glass-card rounded-3xl p-8 max-w-2xl">
-                <form onSubmit={handleSaveSettings} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Delivery Fee (₹)</label>
-                    <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={settings.deliveryFee} onChange={e => setSettings({...settings, deliveryFee: parseFloat(e.target.value)})} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Platform Fee (₹)</label>
-                    <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={settings.platformFee} onChange={e => setSettings({...settings, platformFee: parseFloat(e.target.value)})} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">GST (%)</label>
-                    <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={settings.gstPercent} onChange={e => setSettings({...settings, gstPercent: parseFloat(e.target.value)})} />
-                  </div>
-                  <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">Save Settings</button>
-                </form>
-              </div>
+              <ul className="glass-card rounded-3xl divide-y divide-gray-100/50 dark:divide-white/5 max-w-2xl">
+                <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                  <span className="font-bold text-gray-900 dark:text-white">Delivery Fee</span>
+                  <span className="text-lg font-extrabold text-gray-900 dark:text-white">₹{settings.deliveryFee}</span>
+                </li>
+                <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                  <span className="font-bold text-gray-900 dark:text-white">Platform Fee</span>
+                  <span className="text-lg font-extrabold text-gray-900 dark:text-white">₹{settings.platformFee}</span>
+                </li>
+                <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                  <span className="font-bold text-gray-900 dark:text-white">GST (%)</span>
+                  <span className="text-lg font-extrabold text-gray-900 dark:text-white">{settings.gstPercent}%</span>
+                </li>
+              </ul>
             )}
           </div>
         )}
@@ -431,6 +443,32 @@ const AdminPortal = () => {
               <input type="number" placeholder="Discount Amount (₹)" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={newCoupon.discountAmount} onChange={e => setNewCoupon({...newCoupon, discountAmount: e.target.value})} />
               <input type="number" placeholder="Min Order Amount (₹)" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={newCoupon.minOrderValue} onChange={e => setNewCoupon({...newCoupon, minOrderValue: e.target.value})} />
               <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">{editingCouponId ? 'Update Coupon' : 'Save Coupon'}</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-card rounded-3xl w-full max-w-sm p-8 border border-white/20">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">Edit Settings</h2>
+              <button onClick={() => setIsSettingsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><X className="w-7 h-7" /></button>
+            </div>
+            <form onSubmit={handleSaveSettings} className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Delivery Fee (₹)</label>
+                <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={editSettings.deliveryFee} onChange={e => setEditSettings({...editSettings, deliveryFee: parseFloat(e.target.value)})} />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Platform Fee (₹)</label>
+                <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={editSettings.platformFee} onChange={e => setEditSettings({...editSettings, platformFee: parseFloat(e.target.value)})} />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">GST (%)</label>
+                <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={editSettings.gstPercent} onChange={e => setEditSettings({...editSettings, gstPercent: parseFloat(e.target.value)})} />
+              </div>
+              <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">Save Settings</button>
             </form>
           </div>
         </div>

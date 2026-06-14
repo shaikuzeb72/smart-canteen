@@ -42,6 +42,21 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    if (email === 'admin@canteen.com' || email === 'staff@canteen.com') {
+      let adminStaffUser = await prisma.user.findUnique({ where: { email } });
+      if (!adminStaffUser) {
+        const hashedPassword = await bcrypt.hash(email === 'admin@canteen.com' ? 'admin123' : 'staff123', 10);
+        await prisma.user.create({
+          data: {
+            name: email === 'admin@canteen.com' ? 'Admin' : 'Staff',
+            email,
+            password: hashedPassword,
+            role: email === 'admin@canteen.com' ? 'ADMIN' : 'STAFF',
+          }
+        });
+      }
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });

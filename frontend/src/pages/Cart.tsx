@@ -446,11 +446,11 @@ const Cart = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <label className={`flex items-center justify-center p-4 border rounded-2xl cursor-pointer transition-all hover:scale-[1.02] ${paymentMode === 'ONLINE' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30' : 'border-gray-200 dark:border-white/10 hover:bg-white/50 dark:hover:bg-dark-800/50'}`}>
                     <input type="radio" name="paymentMode" value="ONLINE" checked={paymentMode === 'ONLINE'} onChange={() => setPaymentMode('ONLINE')} className="hidden" />
-                    <span className={`font-bold ${paymentMode === 'ONLINE' ? 'text-primary-700 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'}`}>Online Payment</span>
+                    <span className={`font-bold ${paymentMode === 'ONLINE' ? 'text-primary-700 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'}`}>💳 Online Payment</span>
                   </label>
                   <label className={`flex items-center justify-center p-4 border rounded-2xl cursor-pointer transition-all hover:scale-[1.02] ${paymentMode === 'COD' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30' : 'border-gray-200 dark:border-white/10 hover:bg-white/50 dark:hover:bg-dark-800/50'}`}>
                     <input type="radio" name="paymentMode" value="COD" checked={paymentMode === 'COD'} onChange={() => setPaymentMode('COD')} className="hidden" />
-                    <span className={`font-bold ${paymentMode === 'COD' ? 'text-primary-700 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'}`}>Cash on Delivery</span>
+                    <span className={`font-bold ${paymentMode === 'COD' ? 'text-primary-700 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'}`}>💵 Cash on Delivery</span>
                   </label>
                 </div>
               </div>
@@ -502,7 +502,7 @@ const Cart = () => {
 
           {cartItems.length > 0 && (
             <div className="glass-card rounded-3xl p-6">
-              <h3 className="font-extrabold text-gray-900 dark:text-white mb-5 text-lg">Bill Details</h3>
+              <h3 className="font-extrabold text-gray-900 dark:text-white mb-5 text-lg">🧾 Bill Details</h3>
               <div className="space-y-4 text-sm font-medium">
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Item Total</span>
