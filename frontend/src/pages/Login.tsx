@@ -25,16 +25,9 @@ const Login = () => {
   const [subRole, setSubRole] = useState<'student' | 'teacher'>('student');
 
   useEffect(() => {
-    if (roleFromQuery === 'admin') {
-      setEmail('admin@canteen.com');
-      setPassword('admin123');
-    } else if (roleFromQuery === 'staff') {
-      setEmail('staff@canteen.com');
-      setPassword('staff123');
-    } else {
-      setEmail('');
-      setPassword('');
-    }
+    // Clear any previous autofill
+    setEmail('');
+    setPassword('');
   }, [roleFromQuery]);
 
   useEffect(() => {
@@ -124,10 +117,22 @@ const Login = () => {
 
       if (isLogin) {
         const response = await apiClient.post('/auth/login', { email, password });
-        login(response.data.token, response.data.user);
+        const loggedInUser = response.data.user;
         
-        if (response.data.user.role === 'ADMIN') navigate('/admin');
-        else if (response.data.user.role === 'STAFF') navigate('/staff');
+        // Validate tab role
+        if (roleFromQuery === 'student') {
+          if (subRole === 'student' && loggedInUser.role !== 'STUDENT') {
+            throw new Error('Invalid role. Please login from the Teacher tab.');
+          }
+          if (subRole === 'teacher' && loggedInUser.role !== 'STAFF') {
+            throw new Error('Invalid role. Please login from the Student tab.');
+          }
+        }
+
+        login(response.data.token, loggedInUser);
+        
+        if (loggedInUser.role === 'ADMIN') navigate('/admin');
+        else if (loggedInUser.role === 'STAFF') navigate('/staff');
         else navigate('/dashboard');
       } else {
         // Pass subRole to backend
@@ -136,7 +141,11 @@ const Login = () => {
         setError('Registration successful! Please sign in.');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid credentials or server error');
+      const errorMsg = err instanceof Error && err.message.includes('Invalid role') 
+        ? err.message 
+        : err.response?.data?.message || 'Invalid credentials or server error';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -234,12 +243,12 @@ const Login = () => {
                 </div>
                 <input 
                   type="email" 
+                  autoComplete="off"
                   className="w-full pl-10 pr-4 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all dark:text-white text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]"
                   placeholder={roleFromQuery === 'student' ? (subRole === 'teacher' ? 'teacher@gmail.com' : 'student@gmail.com') : 'name@institution.edu'}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={roleFromQuery === 'admin' || roleFromQuery === 'staff'}
                 />
               </div>
             </div>
@@ -252,12 +261,12 @@ const Login = () => {
                 </div>
                 <input 
                   type={showPassword ? "text" : "password"} 
+                  autoComplete="new-password"
                   className="w-full pl-10 pr-12 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all dark:text-white text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]"
                   placeholder="••••••••"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={roleFromQuery === 'admin' || roleFromQuery === 'staff'}
                 />
                 <button 
                   type="button"

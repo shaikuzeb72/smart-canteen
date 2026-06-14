@@ -46,8 +46,9 @@ router.post('/', authenticateToken, authorizeRoles('ADMIN'), async (req: AuthReq
     });
     res.status(201).json(product);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    const errorMsg = error instanceof Error ? error.message : 'Internal server error';
+    console.error(errorMsg);
+    res.status(400).json({ message: errorMsg });
   }
 });
 
@@ -73,8 +74,9 @@ router.delete('/:id', authenticateToken, authorizeRoles('ADMIN'), async (req: Au
     await prisma.product.delete({ where: { id: String(req.params.id) } });
     res.json({ message: 'Product deleted' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    const errorMsg = error instanceof Error ? error.message : 'Internal server error';
+    console.error(errorMsg);
+    res.status(400).json({ message: errorMsg });
   }
 });
 

@@ -8,6 +8,7 @@ import productRoutes from './routes/products';
 import cartRoutes from './routes/cart';
 import orderRoutes from './routes/orders';
 import couponRoutes from './routes/coupons';
+import settingsRouter from './routes/settings';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/settings', settingsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

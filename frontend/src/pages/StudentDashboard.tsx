@@ -30,6 +30,8 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
         <motion.img 
           src={product.imageUrl || 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=200&h=200'} 
           alt={product.name} 
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-md"
         />
         {product.stock > 0 && (

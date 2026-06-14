@@ -223,10 +223,12 @@ router.put('/:id/staff-cancel', authenticateToken, authorizeRoles('STAFF', 'ADMI
     // Stock is deducted when: COD is placed, or ONLINE payment is SUCCESS
     if (order.paymentMode === 'COD' || order.paymentStatus === 'SUCCESS') {
       for (const item of order.orderItems) {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: { stock: { increment: item.quantity } }
-        });
+        if (item.productId) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } }
+          });
+        }
       }
     }
 

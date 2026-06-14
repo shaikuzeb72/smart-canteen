@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Plus, Trash2, Users, BarChart, X, Ticket, User, LogOut, Edit } from 'lucide-react';
+import { Package, Plus, Trash2, Users, BarChart, X, Ticket, User, LogOut, Edit, Settings as SettingsIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import apiClient from '../api/client';
@@ -35,6 +35,12 @@ interface Coupon {
 
 const PREDEFINED_CATEGORIES = ['Snacks & Drinks', 'Food & Cafe', 'Stationary'];
 
+interface Settings {
+  deliveryFee: number;
+  platformFee: number;
+  gstPercent: number;
+}
+
 const AdminPortal = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -43,6 +49,7 @@ const AdminPortal = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<StudentUser[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [settings, setSettings] = useState<Settings>({ deliveryFee: 0, platformFee: 0, gstPercent: 0 });
   const [loading, setLoading] = useState(true);
 
   // Modal States
@@ -71,6 +78,9 @@ const AdminPortal = () => {
       } else if (activeTab === 'coupons') {
         const couponRes = await apiClient.get('/coupons');
         setCoupons(couponRes.data);
+      } else if (activeTab === 'settings') {
+        const settingsRes = await apiClient.get('/settings');
+        setSettings(settingsRes.data);
       }
     } catch (error) {
       console.error('Failed to fetch data', error);
@@ -183,8 +193,18 @@ const AdminPortal = () => {
       setEditingCouponId(null);
       setNewCoupon({ code: '', discountAmount: '', minOrderValue: '' });
       fetchData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save coupon');
+    }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await apiClient.put('/settings', settings);
+      toast.success('Settings updated successfully');
     } catch (error) {
-      toast.error('Failed to save coupon');
+      toast.error('Failed to update settings');
     }
   };
 
@@ -209,6 +229,10 @@ const AdminPortal = () => {
           <button onClick={() => setActiveTab('users')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all ${activeTab === 'users' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-bold shadow-inner' : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white'}`}>
             <Users className="w-5 h-5" />
             <span>Users</span>
+          </button>
+          <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all ${activeTab === 'settings' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-bold shadow-inner' : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white'}`}>
+            <SettingsIcon className="w-5 h-5" />
+            <span>Settings</span>
           </button>
         </nav>
       </div>
@@ -257,7 +281,7 @@ const AdminPortal = () => {
                     {products.map(product => (
                       <tr key={product.id} className="hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
                         <td className="p-5 font-bold text-gray-900 dark:text-white flex items-center space-x-4">
-                          <img src={product.imageUrl || 'https://via.placeholder.com/40'} className="w-10 h-10 object-cover rounded-lg" alt="" />
+                          <img src={product.imageUrl || 'https://via.placeholder.com/40'} loading="lazy" decoding="async" className="w-10 h-10 object-cover rounded-lg" alt="" />
                           <div className="flex flex-col">
                             <span>{product.name}</span>
                             {product.stock < 5 && (
@@ -337,6 +361,31 @@ const AdminPortal = () => {
                 ))}
                 {users.length === 0 && <div className="p-10 text-center text-gray-500 dark:text-gray-400 font-medium">No students registered yet.</div>}
               </ul>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Global Settings</h1>
+            {loading ? <div className="text-center py-10 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading settings...</div> : (
+              <div className="glass-card rounded-3xl p-8 max-w-2xl">
+                <form onSubmit={handleSaveSettings} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Delivery Fee (₹)</label>
+                    <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={settings.deliveryFee} onChange={e => setSettings({...settings, deliveryFee: parseFloat(e.target.value)})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Platform Fee (₹)</label>
+                    <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={settings.platformFee} onChange={e => setSettings({...settings, platformFee: parseFloat(e.target.value)})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">GST (%)</label>
+                    <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={settings.gstPercent} onChange={e => setSettings({...settings, gstPercent: parseFloat(e.target.value)})} />
+                  </div>
+                  <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">Save Settings</button>
+                </form>
+              </div>
             )}
           </div>
         )}

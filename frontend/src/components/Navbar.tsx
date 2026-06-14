@@ -140,7 +140,7 @@ const Navbar = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute top-full left-0 mt-2 w-64 glass-card rounded-xl shadow-xl overflow-hidden py-2"
+              className="absolute z-50 top-full left-0 mt-2 w-64 glass-card rounded-xl shadow-xl overflow-hidden py-2"
             >
               <div className="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-dark-700">
                 Saved Addresses

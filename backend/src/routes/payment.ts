@@ -79,10 +79,12 @@ router.post('/verify', authenticateToken, async (req: AuthRequest, res: Response
 
     // Deduct stock for successful online payment
     for (const item of order.orderItems) {
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: { stock: { decrement: item.quantity } }
-      });
+      if (item.productId) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } }
+        });
+      }
     }
 
     // Successfully verified and updated order! Now Clear the cart

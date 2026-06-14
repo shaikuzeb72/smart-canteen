@@ -66,11 +66,23 @@ const Cart = () => {
 
   const [address, setAddress] = useState({ building: '', floor: '', room: '', instructions: '', mobileNumber: '' });
 
+  const [settings, setSettings] = useState({ deliveryFee: 10, platformFee: 5, gstPercent: 5 });
+
   useEffect(() => {
     fetchCart();
     fetchCoupons();
     fetchSavedAddresses();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await apiClient.get('/settings');
+      if (res.data) setSettings(res.data);
+    } catch (error) {
+      console.error('Failed to load settings', error);
+    }
+  };
 
   const fetchCart = async () => {
     try {
@@ -140,9 +152,9 @@ const Cart = () => {
   };
 
   const itemTotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-  const platformFee = 2;
-  const deliveryFee = itemTotal >= 100 ? 0 : 20;
-  const gst = itemTotal * 0.05; // 5% GST
+  const platformFee = settings.platformFee;
+  const deliveryFee = itemTotal >= 100 ? 0 : settings.deliveryFee;
+  const gst = itemTotal * (settings.gstPercent / 100);
   let discount = 0;
 
   if (appliedCoupon) {
@@ -332,6 +344,8 @@ const Cart = () => {
                   <img 
                     src={item.product.imageUrl || "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=100&h=100"} 
                     alt={item.product.name} 
+                    loading="lazy"
+                    decoding="async"
                     className="w-24 h-24 rounded-2xl object-cover drop-shadow-sm"
                   />
                   <div className="ml-5 flex-1">
@@ -380,8 +394,8 @@ const Cart = () => {
                       value={address.building}
                       onChange={e => setAddress({...address, building: e.target.value, floor: ''})}
                     >
-                      <option value="" className="dark:bg-dark-900">Select Building Block</option>
-                      {BUILDINGS.map(b => <option key={b} value={b} className="dark:bg-dark-900">{b}</option>)}
+                      <option value="" className="dark:bg-dark-900">🏢 Select Building Block</option>
+                      {BUILDINGS.map(b => <option key={b} value={b} className="dark:bg-dark-900">🏢 {b}</option>)}
                     </select>
 
                     {requiresFloor ? (
@@ -390,8 +404,8 @@ const Cart = () => {
                         value={address.floor}
                         onChange={e => setAddress({...address, floor: e.target.value})}
                       >
-                        <option value="" className="dark:bg-dark-900">Select Floor</option>
-                        {FLOORS.map(f => <option key={f} value={f} className="dark:bg-dark-900">{f}</option>)}
+                        <option value="" className="dark:bg-dark-900">🪜 Select Floor</option>
+                        {FLOORS.map(f => <option key={f} value={f} className="dark:bg-dark-900">🪜 {f}</option>)}
                       </select>
                     ) : (
                       <div className="flex items-center justify-center glass-panel rounded-xl px-5 py-3 text-xs font-bold text-gray-500 dark:text-gray-400 text-center">
@@ -402,7 +416,7 @@ const Cart = () => {
                   
                   <input 
                     type="text" 
-                    placeholder="Room Number / Specific Area" 
+                    placeholder="🚪 Room Number / Specific Area" 
                     className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
                     value={address.room} 
                     onChange={e => setAddress({...address, room: e.target.value})} 
@@ -410,7 +424,7 @@ const Cart = () => {
                   
                   <input 
                     type="tel" 
-                    placeholder="Mobile Number (10 digits)" 
+                    placeholder="📱 Mobile Number (10 digits)" 
                     className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
                     value={address.mobileNumber} 
                     onChange={e => setAddress({...address, mobileNumber: e.target.value})} 
@@ -418,7 +432,7 @@ const Cart = () => {
                   />
 
                   <textarea 
-                    placeholder="Additional Instructions (Optional)" 
+                    placeholder="📝 Additional Instructions (Optional)" 
                     className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
                     rows={2} 
                     value={address.instructions} 
@@ -495,7 +509,7 @@ const Cart = () => {
                   <span className="font-bold text-gray-900 dark:text-white">₹{itemTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                  <span>GST (5%)</span>
+                  <span>GST ({settings.gstPercent}%)</span>
                   <span className="font-bold text-gray-900 dark:text-white">₹{gst.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
