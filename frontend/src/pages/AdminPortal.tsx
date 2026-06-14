@@ -66,6 +66,9 @@ const AdminPortal = () => {
   const [editingSettingKey, setEditingSettingKey] = useState<'deliveryFee' | 'platformFee' | 'gstPercent' | null>(null);
   const [singleSettingValue, setSingleSettingValue] = useState<string>('');
   
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+  const [maintenanceForm, setMaintenanceForm] = useState({ reason: '', info: '' });
+  
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' });
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -232,26 +235,36 @@ const AdminPortal = () => {
   };
 
   const handleToggleMaintenance = async (checked: boolean) => {
+    if (checked) {
+      setMaintenanceForm({ reason: settings.maintenanceReason || '', info: settings.maintenanceInfo || '' });
+      setIsMaintenanceModalOpen(true);
+      return;
+    }
+    
     try {
-      const updatedSettings = { ...settings, isMaintenance: checked };
-      if (checked && !updatedSettings.maintenanceReason) {
-        updatedSettings.maintenanceReason = 'Kitchen Closed';
-      }
+      const updatedSettings = { ...settings, isMaintenance: false, maintenanceReason: null, maintenanceInfo: null };
       await apiClient.put('/settings', updatedSettings);
       setSettings(updatedSettings);
-      toast.success(checked ? 'Maintenance Mode Enabled' : 'Maintenance Mode Disabled');
+      toast.success('Maintenance Mode Disabled');
     } catch (error) {
       toast.error('Failed to update maintenance mode');
     }
   };
 
-  const handleUpdateMaintenanceDetails = async (reason: string, info: string) => {
+  const handleConfirmMaintenance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!maintenanceForm.reason) {
+      toast.error('Please select a reason');
+      return;
+    }
     try {
-      const updatedSettings = { ...settings, maintenanceReason: reason, maintenanceInfo: info };
+      const updatedSettings = { ...settings, isMaintenance: true, maintenanceReason: maintenanceForm.reason, maintenanceInfo: maintenanceForm.info };
       await apiClient.put('/settings', updatedSettings);
       setSettings(updatedSettings);
+      setIsMaintenanceModalOpen(false);
+      toast.success('Maintenance Mode Enabled');
     } catch (error) {
-      toast.error('Failed to update maintenance details');
+      toast.error('Failed to enable maintenance');
     }
   };
 
@@ -489,32 +502,17 @@ const AdminPortal = () => {
                   
                   {settings.isMaintenance && (
                     <div className="space-y-4 pt-6 mt-6 border-t border-gray-100 dark:border-white/5">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Reason</label>
-                        <select 
-                          className="w-full px-5 py-3 glass-panel rounded-xl outline-none font-medium dark:text-white dark:bg-dark-800"
-                          value={settings.maintenanceReason || 'Kitchen Closed'}
-                          onChange={e => handleUpdateMaintenanceDetails(e.target.value, settings.maintenanceInfo || '')}
-                        >
-                          <option value="System Update">System Update</option>
-                          <option value="Kitchen Closed">Kitchen Closed</option>
-                          <option value="Inventory Check">Inventory Check</option>
-                          <option value="Staff Unavailable">Staff Unavailable</option>
-                          <option value="Technical Issue">Technical Issue</option>
-                          <option value="Other">Other</option>
-                        </select>
+                      <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
+                        <span className="font-extrabold text-lg">{settings.maintenanceReason}</span>
                       </div>
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Additional Information (Optional)</label>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. Back in 30 minutes"
-                          className="w-full px-5 py-3 glass-panel rounded-xl outline-none font-medium dark:text-white"
-                          value={settings.maintenanceInfo || ''}
-                          onChange={e => setSettings({...settings, maintenanceInfo: e.target.value})}
-                          onBlur={e => handleUpdateMaintenanceDetails(settings.maintenanceReason || 'Kitchen Closed', e.target.value)}
-                        />
-                      </div>
+                      {settings.maintenanceInfo && (
+                        <div className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-red-50 dark:bg-red-900/10 p-4 rounded-xl border border-red-100 dark:border-red-900/30">
+                          {settings.maintenanceInfo}
+                        </div>
+                      )}
+                      <button onClick={() => { setMaintenanceForm({ reason: settings.maintenanceReason || '', info: settings.maintenanceInfo || '' }); setIsMaintenanceModalOpen(true); }} className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center mt-2">
+                        <Edit className="w-4 h-4 mr-1" /> Edit Maintenance Info
+                      </button>
                     </div>
                   )}
                 </div>
@@ -586,6 +584,49 @@ const AdminPortal = () => {
                 <input type="number" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={singleSettingValue} onChange={e => setSingleSettingValue(e.target.value)} />
               </div>
               <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">Save</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isMaintenanceModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-card rounded-3xl w-full max-w-sm p-8 border border-white/20">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">Enable Maintenance</h2>
+              <button onClick={() => setIsMaintenanceModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><X className="w-7 h-7" /></button>
+            </div>
+            <form onSubmit={handleConfirmMaintenance} className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+                <select 
+                  required
+                  className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-gray-900 dark:text-white dark:bg-dark-800 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)] appearance-none"
+                  value={maintenanceForm.reason}
+                  onChange={e => setMaintenanceForm({...maintenanceForm, reason: e.target.value})}
+                >
+                  <option value="" disabled className="dark:bg-dark-900">Select Reason</option>
+                  <option value="🔧 System Update" className="dark:bg-dark-900">🔧 System Update</option>
+                  <option value="👨‍🍳 Kitchen Closed" className="dark:bg-dark-900">👨‍🍳 Kitchen Closed</option>
+                  <option value="📦 Inventory Check" className="dark:bg-dark-900">📦 Inventory Check</option>
+                  <option value="🧑‍💻 Staff Unavailable" className="dark:bg-dark-900">🧑‍💻 Staff Unavailable</option>
+                  <option value="🚧 Technical Issue" className="dark:bg-dark-900">🚧 Technical Issue</option>
+                  <option value="📝 Other" className="dark:bg-dark-900">📝 Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Additional Information (Optional)</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Back in 30 minutes"
+                  className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                  value={maintenanceForm.info}
+                  onChange={e => setMaintenanceForm({...maintenanceForm, info: e.target.value})}
+                />
+              </div>
+              <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-red-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">
+                {settings.isMaintenance ? 'Save Changes' : 'Enable Maintenance'}
+              </button>
             </form>
           </div>
         </div>
