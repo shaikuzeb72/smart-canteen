@@ -18,6 +18,7 @@ router.get('/', async (req: Request, res: Response) => {
           deliveryFee: 10,
           platformFee: 5,
           gstPercent: 5,
+          freeDeliveryThreshold: 149,
           isMaintenance: false
         }
       });
@@ -37,6 +38,7 @@ router.put('/', authenticateToken, authorizeRoles('ADMIN'), async (req: AuthRequ
     if (req.body.deliveryFee !== undefined) data.deliveryFee = Number(req.body.deliveryFee);
     if (req.body.platformFee !== undefined) data.platformFee = Number(req.body.platformFee);
     if (req.body.gstPercent !== undefined) data.gstPercent = Number(req.body.gstPercent);
+    if (req.body.freeDeliveryThreshold !== undefined) data.freeDeliveryThreshold = Number(req.body.freeDeliveryThreshold);
     if (req.body.isMaintenance !== undefined) data.isMaintenance = Boolean(req.body.isMaintenance);
     if (req.body.maintenanceReason !== undefined) data.maintenanceReason = req.body.maintenanceReason;
     if (req.body.maintenanceInfo !== undefined) data.maintenanceInfo = req.body.maintenanceInfo;
@@ -49,9 +51,10 @@ router.put('/', authenticateToken, authorizeRoles('ADMIN'), async (req: AuthRequ
         deliveryFee: data.deliveryFee ?? 10,
         platformFee: data.platformFee ?? 5,
         gstPercent: data.gstPercent ?? 5,
+        freeDeliveryThreshold: data.freeDeliveryThreshold ?? 149,
         isMaintenance: data.isMaintenance ?? false,
-        maintenanceReason: data.maintenanceReason || null,
-        maintenanceInfo: data.maintenanceInfo || null
+        maintenanceReason: data.maintenanceReason,
+        maintenanceInfo: data.maintenanceInfo,
       }
     });
 

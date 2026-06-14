@@ -39,6 +39,7 @@ interface Settings {
   deliveryFee: number;
   platformFee: number;
   gstPercent: number;
+  freeDeliveryThreshold?: number;
   isMaintenance?: boolean;
   maintenanceReason?: string | null;
   maintenanceInfo?: string | null;
@@ -63,7 +64,7 @@ const AdminPortal = () => {
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [editingSettingKey, setEditingSettingKey] = useState<'deliveryFee' | 'platformFee' | 'gstPercent' | null>(null);
+  const [editingSettingKey, setEditingSettingKey] = useState<'deliveryFee' | 'platformFee' | 'gstPercent' | 'freeDeliveryThreshold' | null>(null);
   const [singleSettingValue, setSingleSettingValue] = useState<string>('');
   
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
@@ -162,9 +163,9 @@ const AdminPortal = () => {
     setIsCouponModalOpen(true);
   };
 
-  const handleOpenEditSingleSetting = (key: 'deliveryFee' | 'platformFee' | 'gstPercent') => {
+  const handleOpenEditSingleSetting = (key: 'deliveryFee' | 'platformFee' | 'gstPercent' | 'freeDeliveryThreshold') => {
     setEditingSettingKey(key);
-    setSingleSettingValue(settings[key].toString());
+    setSingleSettingValue(settings[key]?.toString() || '0');
     setIsSettingsModalOpen(true);
   };
 
@@ -340,51 +341,61 @@ const AdminPortal = () => {
         </div>
 
         {activeTab === 'products' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
+          <div className="space-y-10">
+            <div className="flex justify-between items-center mb-2">
               <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Manage Products</h1>
-              <button onClick={() => { setEditingProductId(null); setNewProduct({ name: '', price: '', stock: '', category: '', imageUrl: '', description: '', weight: '' }); setIsProductModalOpen(true); }} className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center shadow-lg hover:shadow-primary-500/40 transition-all hover:scale-[1.02]">
-                <Plus className="w-5 h-5 mr-1.5" /> Add Product
-              </button>
             </div>
             {loading ? <div className="text-center py-10 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading products...</div> : (
-              <div className="glass-card rounded-3xl overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200/50 dark:border-white/10 text-sm text-gray-500 dark:text-gray-400">
-                      <th className="p-5 font-bold uppercase tracking-wider text-xs">Product Name</th>
-                      <th className="p-5 font-bold uppercase tracking-wider text-xs">Category</th>
-                      <th className="p-5 font-bold uppercase tracking-wider text-xs">Price</th>
-                      <th className="p-5 font-bold uppercase tracking-wider text-xs text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100/50 dark:divide-white/5">
-                    {products.map(product => (
-                      <tr key={product.id} className="hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
-                        <td className="p-5 font-bold text-gray-900 dark:text-white flex items-center space-x-4">
-                          <img src={product.imageUrl || 'https://via.placeholder.com/40'} loading="lazy" decoding="async" className="w-10 h-10 object-cover rounded-lg" alt="" />
-                          <div className="flex flex-col">
-                            <span>{product.name}</span>
-                            {product.stock < 5 && (
-                              <span className="text-xs font-bold text-red-600 mt-0.5">Low Stock: {product.stock} left</span>
+              <div className="space-y-10">
+                {PREDEFINED_CATEGORIES.map(category => {
+                  const categoryProducts = products.filter(p => p.category === category);
+                  return (
+                    <div key={category}>
+                      <div className="flex justify-between items-center mb-4 px-2">
+                        <h2 className="text-xl font-extrabold text-gray-800 dark:text-gray-100">{category}</h2>
+                        <button onClick={() => { setEditingProductId(null); setNewProduct({ name: '', price: '', stock: '', category: category, imageUrl: '', description: '', weight: '' }); setIsProductModalOpen(true); }} className="bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center shadow-lg hover:shadow-primary-500/40 transition-all hover:scale-[1.02]">
+                          <Plus className="w-4 h-4 mr-1" /> Add Product
+                        </button>
+                      </div>
+                      <div className="glass-card rounded-3xl overflow-hidden">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-gray-200/50 dark:border-white/10 text-sm text-gray-500 dark:text-gray-400">
+                              <th className="p-5 font-bold uppercase tracking-wider text-xs">Product Name</th>
+                              <th className="p-5 font-bold uppercase tracking-wider text-xs">Price</th>
+                              <th className="p-5 font-bold uppercase tracking-wider text-xs text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100/50 dark:divide-white/5">
+                            {categoryProducts.map(product => (
+                              <tr key={product.id} className="hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                                <td className="p-5 font-bold text-gray-900 dark:text-white flex items-center space-x-4">
+                                  <img src={product.imageUrl || 'https://via.placeholder.com/40'} loading="lazy" decoding="async" className="w-10 h-10 object-cover rounded-lg" alt="" />
+                                  <div className="flex flex-col">
+                                    <span>{product.name}</span>
+                                    {product.stock < 5 && (
+                                      <span className="text-xs font-bold text-red-600 mt-0.5">Low Stock: {product.stock} left</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-5 font-extrabold text-gray-900 dark:text-white text-lg">₹{product.price}</td>
+                                <td className="p-5 text-right space-x-2">
+                                  <button onClick={() => handleOpenEditProduct(product)} className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"><Edit className="w-5 h-5" /></button>
+                                  <button onClick={() => deleteProduct(product.id)} className="p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"><Trash2 className="w-5 h-5" /></button>
+                                </td>
+                              </tr>
+                            ))}
+                            {categoryProducts.length === 0 && (
+                              <tr>
+                                <td colSpan={3} className="p-8 text-center text-gray-500">No products in this category.</td>
+                              </tr>
                             )}
-                          </div>
-                        </td>
-                        <td className="p-5 font-medium text-gray-600 dark:text-gray-400">{product.category}</td>
-                        <td className="p-5 font-extrabold text-gray-900 dark:text-white text-lg">₹{product.price}</td>
-                        <td className="p-5 text-right space-x-2">
-                          <button onClick={() => handleOpenEditProduct(product)} className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"><Edit className="w-5 h-5" /></button>
-                          <button onClick={() => deleteProduct(product.id)} className="p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"><Trash2 className="w-5 h-5" /></button>
-                        </td>
-                      </tr>
-                    ))}
-                    {products.length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="p-8 text-center text-gray-500">No products available.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -485,6 +496,16 @@ const AdminPortal = () => {
                       <button onClick={() => handleOpenEditSingleSetting('gstPercent')} className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"><Edit className="w-5 h-5" /></button>
                     </div>
                   </li>
+                  <li className="p-5 flex justify-between items-center hover:bg-white/40 dark:hover:bg-dark-800/40 transition-colors">
+                    <div>
+                      <span className="font-bold text-gray-900 dark:text-white block">Free Delivery Limit</span>
+                      <span className="text-sm font-medium text-gray-500">Orders above this get free delivery</span>
+                    </div>
+                    <div className="flex items-center space-x-6">
+                      <span className="text-xl font-extrabold text-gray-900 dark:text-white">₹{settings.freeDeliveryThreshold ?? 149}</span>
+                      <button onClick={() => handleOpenEditSingleSetting('freeDeliveryThreshold')} className="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"><Edit className="w-5 h-5" /></button>
+                    </div>
+                  </li>
                 </ul>
 
                 <h2 className="text-xl font-extrabold text-gray-900 dark:text-white mb-4">Canteen Status</h2>
@@ -572,7 +593,7 @@ const AdminPortal = () => {
           <div className="glass-card rounded-3xl w-full max-w-sm p-8 border border-white/20">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">
-                Edit {editingSettingKey === 'deliveryFee' ? 'Delivery Fee' : editingSettingKey === 'platformFee' ? 'Platform Fee' : 'GST (%)'}
+                Edit {editingSettingKey === 'deliveryFee' ? 'Delivery Fee' : editingSettingKey === 'platformFee' ? 'Platform Fee' : editingSettingKey === 'gstPercent' ? 'GST (%)' : 'Free Delivery Limit'}
               </h2>
               <button onClick={() => setIsSettingsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><X className="w-7 h-7" /></button>
             </div>

@@ -122,6 +122,7 @@ model Settings {
   deliveryFee      Float    @default(10)
   platformFee      Float    @default(5)
   gstPercent       Float    @default(5)
+  freeDeliveryThreshold Float @default(149)
   isMaintenance    Boolean  @default(false)
   maintenanceReason String?
   maintenanceInfo  String?

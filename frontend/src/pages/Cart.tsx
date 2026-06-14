@@ -66,7 +66,7 @@ const Cart = () => {
 
   const [address, setAddress] = useState({ building: '', floor: '', room: '', instructions: '', mobileNumber: '' });
 
-  const [settings, setSettings] = useState<any>({ deliveryFee: 10, platformFee: 5, gstPercent: 5, isMaintenance: false });
+  const [settings, setSettings] = useState<any>({ deliveryFee: 10, platformFee: 5, gstPercent: 5, freeDeliveryThreshold: 149, isMaintenance: false });
 
   useEffect(() => {
     fetchCart();
@@ -142,7 +142,8 @@ const Cart = () => {
 
   const itemTotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   const platformFee = settings.platformFee;
-  const deliveryFee = itemTotal >= 100 ? 0 : settings.deliveryFee;
+  const freeDeliveryLimit = settings.freeDeliveryThreshold ?? 149;
+  const deliveryFee = itemTotal >= freeDeliveryLimit ? 0 : settings.deliveryFee;
   const gst = itemTotal * (settings.gstPercent / 100);
   let discount = 0;
 
@@ -516,12 +517,19 @@ const Cart = () => {
                   <span>GST ({settings.gstPercent}%)</span>
                   <span className="font-bold text-gray-900 dark:text-white">₹{gst.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                  <span>Delivery Fee</span>
-                  <span className={`font-extrabold ${deliveryFee === 0 ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded' : 'text-gray-900 dark:text-white'}`}>
-                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
-                  </span>
-                </div>
+                  <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
+                    <div className="flex flex-col">
+                      <span>Delivery Fee</span>
+                      {deliveryFee > 0 && (
+                        <span className="text-xs text-primary-500 font-bold mt-0.5">
+                          Add ₹{(freeDeliveryLimit - itemTotal).toFixed(2)} more for FREE delivery!
+                        </span>
+                      )}
+                    </div>
+                    <span className={`font-extrabold ${deliveryFee === 0 ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded' : 'text-gray-900 dark:text-white'}`}>
+                      {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
+                    </span>
+                  </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
                   <span>Platform Fee</span>
                   <span className="font-bold text-gray-900 dark:text-white">₹{platformFee.toFixed(2)}</span>
