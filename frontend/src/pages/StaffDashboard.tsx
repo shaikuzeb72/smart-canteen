@@ -176,7 +176,7 @@ const StaffDashboard = () => {
                   <ul className="space-y-2">
                     {order.orderItems.map((item, idx) => (
                       <li key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-700 dark:text-gray-300"><span className="font-extrabold text-gray-900 dark:text-white bg-gray-100 dark:bg-dark-700 px-1.5 py-0.5 rounded mr-1">{item.quantity}x</span> {item.product.name}</span>
+                        <span className="text-gray-700 dark:text-gray-300"><span className="font-extrabold text-gray-900 dark:text-white bg-gray-100 dark:bg-dark-700 px-1.5 py-0.5 rounded mr-1">{item.quantity}x</span> {item.product?.name || 'Deleted Product'}</span>
                         <span className="font-bold text-gray-500 dark:text-gray-400">₹{item.price * item.quantity}</span>
                       </li>
                     ))}
