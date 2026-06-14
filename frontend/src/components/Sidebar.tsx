@@ -1,11 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Coffee, Pizza, ShoppingCart, Clock, PenTool } from 'lucide-react';
+import { ShoppingBag, Coffee, Pizza, ShoppingCart, Clock, PenTool, Candy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Sidebar = () => {
   const categories = [
     { name: 'All Products', icon: ShoppingBag, path: '/dashboard' },
     { name: 'Snacks & Drinks', icon: Coffee, path: '/dashboard?category=snacks' },
+    { name: 'Sweets & Chocolates', icon: Candy, path: '/dashboard?category=sweets' },
     { name: 'Food & Cafe', icon: Pizza, path: '/dashboard?category=food' },
     { name: 'Stationary', icon: PenTool, path: '/dashboard?category=stationary' },
     { name: 'Cart', icon: ShoppingCart, path: '/cart' },

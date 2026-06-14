@@ -33,7 +33,7 @@ interface Coupon {
   minOrderValue: number;
 }
 
-const PREDEFINED_CATEGORIES = ['Snacks & Drinks', 'Food & Cafe', 'Stationary'];
+const PREDEFINED_CATEGORIES = ['Snacks & Drinks', 'Sweets & Chocolates', 'Food & Cafe', 'Stationary'];
 
 interface Settings {
   deliveryFee: number;

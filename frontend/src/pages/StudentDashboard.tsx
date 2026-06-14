@@ -117,6 +117,7 @@ const StudentDashboard = () => {
   let filteredProducts = products.filter(p => {
     let matchesCategory = true;
     if (categoryFilter === 'snacks') matchesCategory = p.category === 'Snacks & Drinks';
+    else if (categoryFilter === 'sweets') matchesCategory = p.category === 'Sweets & Chocolates';
     else if (categoryFilter === 'food') matchesCategory = p.category === 'Food & Cafe';
     else if (categoryFilter === 'stationary') matchesCategory = p.category === 'Stationary';
 
