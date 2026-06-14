@@ -103,18 +103,6 @@ const Login = () => {
     setLoading(true);
 
     try {
-      if (roleFromQuery === 'admin' && email === 'admin@canteen.com' && password === 'admin123') {
-        login('dummy-admin-token', { id: 'admin1', name: 'Admin', email, role: 'ADMIN' });
-        navigate('/admin');
-        return;
-      }
-
-      if (roleFromQuery === 'staff' && email === 'staff@canteen.com' && password === 'staff123') {
-        login('dummy-staff-token', { id: 'staff1', name: 'Staff', email, role: 'STAFF' });
-        navigate('/staff');
-        return;
-      }
-
       if (isLogin) {
         const response = await apiClient.post('/auth/login', { email, password });
         const loggedInUser = response.data.user;
@@ -124,7 +112,7 @@ const Login = () => {
           if (subRole === 'student' && loggedInUser.role !== 'STUDENT') {
             throw new Error('Invalid role. Please login from the Teacher tab.');
           }
-          if (subRole === 'teacher' && loggedInUser.role !== 'STAFF') {
+          if (subRole === 'teacher' && loggedInUser.role !== 'STAFF' && loggedInUser.role !== 'TEACHER') {
             throw new Error('Invalid role. Please login from the Student tab.');
           }
         }
@@ -132,7 +120,7 @@ const Login = () => {
         login(response.data.token, loggedInUser);
         
         if (loggedInUser.role === 'ADMIN') navigate('/admin');
-        else if (loggedInUser.role === 'STAFF') navigate('/staff');
+        else if (loggedInUser.role === 'STAFF' || loggedInUser.role === 'TEACHER') navigate('/staff');
         else navigate('/dashboard');
       } else {
         // Pass subRole to backend

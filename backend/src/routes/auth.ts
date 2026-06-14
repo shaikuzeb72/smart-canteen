@@ -153,6 +153,34 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => 
   }
 });
 
+// Change Password
+router.put('/me/password', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new password required' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.user?.id } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Incorrect current password' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: req.user?.id },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Get All Student Users (Admin only)
 router.get('/users', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

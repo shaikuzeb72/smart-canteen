@@ -109,19 +109,8 @@ const Cart = () => {
     try {
       const response = await apiClient.get('/auth/me/addresses');
       setSavedAddresses(response.data);
-      // Location Auto-fill
-      if (response.data.length > 0) {
-        const selected = response.data[0];
-        setAddress({
-          building: selected.building,
-          floor: selected.floor || '',
-          room: selected.room,
-          instructions: selected.instructions || '',
-          mobileNumber: selected.mobileNumber || ''
-        });
-      }
     } catch (error) {
-      console.error('Failed to fetch saved addresses', error);
+      console.error('Failed to load addresses', error);
     }
   };
 
@@ -414,30 +403,45 @@ const Cart = () => {
                     )}
                   </div>
                   
-                  <input 
-                    type="text" 
-                    placeholder="🚪 Room Number / Specific Area" 
-                    className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
-                    value={address.room} 
-                    onChange={e => setAddress({...address, room: e.target.value})} 
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-xl">🚪</span>
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Room Number / Specific Area" 
+                      className="w-full pl-12 pr-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
+                      value={address.room} 
+                      onChange={e => setAddress({...address, room: e.target.value})} 
+                    />
+                  </div>
                   
-                  <input 
-                    type="tel" 
-                    placeholder="📱 Mobile Number (10 digits)" 
-                    className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
-                    value={address.mobileNumber} 
-                    onChange={e => setAddress({...address, mobileNumber: e.target.value})} 
-                    maxLength={10}
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-xl">📱</span>
+                    </div>
+                    <input 
+                      type="tel" 
+                      placeholder="Mobile Number (10 digits)" 
+                      className="w-full pl-12 pr-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
+                      value={address.mobileNumber} 
+                      onChange={e => setAddress({...address, mobileNumber: e.target.value})} 
+                      maxLength={10}
+                    />
+                  </div>
 
-                  <textarea 
-                    placeholder="📝 Additional Instructions (Optional)" 
-                    className="w-full px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
-                    rows={2} 
-                    value={address.instructions} 
-                    onChange={e => setAddress({...address, instructions: e.target.value})}
-                  ></textarea>
+                  <div className="relative">
+                    <div className="absolute top-3 left-0 pl-4 pointer-events-none">
+                      <span className="text-xl">📝</span>
+                    </div>
+                    <textarea 
+                      placeholder="Additional Instructions (Optional)" 
+                      className="w-full pl-12 pr-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
+                      rows={2} 
+                      value={address.instructions} 
+                      onChange={e => setAddress({...address, instructions: e.target.value})}
+                    ></textarea>
+                  </div>
                 </div>
               </div>
 
