@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Plus, Trash2, Users, BarChart, X, Ticket, User, LogOut, Edit, Settings as SettingsIcon, Lock } from 'lucide-react';
+import { Package, Plus, Trash2, Users, BarChart, X, Ticket, User, LogOut, Edit, Settings as SettingsIcon, Lock, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import apiClient from '../api/client';
@@ -64,6 +64,8 @@ const AdminPortal = () => {
   
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: '', imageUrl: '', description: '', weight: '' });
   const [newCoupon, setNewCoupon] = useState({ code: '', discountAmount: '', minOrderValue: '' });
@@ -228,6 +230,8 @@ const AdminPortal = () => {
       toast.success('Password updated successfully');
       setIsPasswordModalOpen(false);
       setPasswordForm({ currentPassword: '', newPassword: '' });
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update password');
     }
@@ -281,7 +285,7 @@ const AdminPortal = () => {
                 <ThemeToggle />
               </div>
               <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center px-4 py-2 bg-white/50 dark:bg-dark-800/50 backdrop-blur rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors shadow-sm">
-                <Lock className="w-4 h-4 mr-2" /> Password
+                <Lock className="w-4 h-4 mr-2" /> Change Password
               </button>
               <button onClick={handleLogout} className="flex items-center px-4 py-2 bg-white/50 dark:bg-dark-800/50 backdrop-blur rounded-xl text-sm font-bold text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors shadow-sm">
                 <LogOut className="w-4 h-4 mr-2" /> Logout
@@ -504,13 +508,23 @@ const AdminPortal = () => {
               <button onClick={() => setIsPasswordModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><X className="w-7 h-7" /></button>
             </div>
             <form onSubmit={handleChangePassword} className="space-y-5">
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
-                <input type="password" required className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} />
+                <div className="relative">
+                  <input type={showCurrentPassword ? "text" : "password"} required className="w-full pl-5 pr-12 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} />
+                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500">
+                    {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">New Password</label>
-                <input type="password" required minLength={6} className="w-full px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} />
+                <div className="relative">
+                  <input type={showNewPassword ? "text" : "password"} required minLength={6} className="w-full pl-5 pr-12 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} />
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500">
+                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <button type="submit" className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-primary-500/30 hover:shadow-xl transition-all hover:scale-[1.02]">Update Password</button>
             </form>

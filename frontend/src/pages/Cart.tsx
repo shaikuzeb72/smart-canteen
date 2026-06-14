@@ -404,7 +404,7 @@ const Cart = () => {
                   </div>
                   
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <div className="absolute z-10 inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <span className="text-xl">🚪</span>
                     </div>
                     <input 
@@ -417,7 +417,7 @@ const Cart = () => {
                   </div>
                   
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <div className="absolute z-10 inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <span className="text-xl">📱</span>
                     </div>
                     <input 
@@ -431,7 +431,7 @@ const Cart = () => {
                   </div>
 
                   <div className="relative">
-                    <div className="absolute top-3 left-0 pl-4 pointer-events-none">
+                    <div className="absolute z-10 top-3 left-0 pl-4 pointer-events-none">
                       <span className="text-xl">📝</span>
                     </div>
                     <textarea 
