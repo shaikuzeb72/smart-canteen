@@ -25,11 +25,17 @@ const Navbar = () => {
     fetchAddresses();
     fetchSuggestions();
     
+    const handleCartUpdate = () => fetchCartCount();
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
     const interval = setInterval(() => {
       fetchCartCount();
       fetchSuggestions();
     }, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
   }, []);
 
   const fetchSuggestions = async () => {

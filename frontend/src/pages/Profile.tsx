@@ -130,7 +130,7 @@ const Profile = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <span className="font-extrabold text-gray-900 dark:text-white mr-3 tracking-wider">Order #{order.id.slice(0, 8)}</span>
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleString()}</span>
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</span>
                     {order.estimatedTime && (
                       <div className="mt-2 block w-max text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50/80 dark:bg-primary-900/30 border border-primary-100 dark:border-primary-800/50 px-2 py-1 rounded-md">
                         {order.estimatedTime}

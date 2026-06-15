@@ -52,11 +52,17 @@ const StaffDashboard = () => {
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
+    // Optimistic UI Update
+    const prevOrders = [...orders];
+    setOrders(orders.map(order => order.id === id ? { ...order, status: newStatus } : order));
+    
     try {
       await apiClient.put(`/orders/${id}/status`, { status: newStatus });
-      fetchOrders();
+      fetchOrders(); // sync with server
     } catch (error) {
+      setOrders(prevOrders); // Revert on failure
       console.error('Failed to update status', error);
+      toast.error('Failed to update status');
     }
   };
 
@@ -186,7 +192,7 @@ const StaffDashboard = () => {
 
               <div className="p-5 bg-white/40 dark:bg-dark-800/40 border-t border-white/20 dark:border-white/5">
                 <div className="flex justify-between items-center mb-5">
-                  <span className="text-gray-500 dark:text-gray-400 text-xs font-bold flex items-center bg-white/50 dark:bg-dark-700/50 px-2 py-1 rounded-lg"><Clock className="w-3.5 h-3.5 mr-1.5"/> {new Date(order.createdAt).toLocaleTimeString()}</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-xs font-bold flex items-center bg-white/50 dark:bg-dark-700/50 px-2 py-1 rounded-lg"><Clock className="w-3.5 h-3.5 mr-1.5"/> {new Date(order.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}</span>
                   <span className="font-extrabold text-xl text-gray-900 dark:text-white">₹{order.totalAmount}</span>
                 </div>
                 

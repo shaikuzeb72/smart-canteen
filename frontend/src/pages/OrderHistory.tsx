@@ -80,7 +80,7 @@ const OrderHistory = () => {
               <div className="p-5 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-dark-800/40 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                 <div className="mb-2 sm:mb-0">
                   <span className="font-extrabold text-gray-900 dark:text-white text-lg mr-3 tracking-wider">Order #{order.id.slice(0, 8)}</span>
-                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleString()}</span>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</span>
                 </div>
                 <div className="flex items-center space-x-2 bg-white/80 dark:bg-dark-800/80 border border-white/20 dark:border-white/5 px-4 py-2 rounded-xl shadow-sm backdrop-blur">
                   {getStatusIcon(order.status)}

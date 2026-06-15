@@ -482,7 +482,7 @@ const AdminPortal = () => {
                       <span className={`px-3 py-1.5 rounded-lg text-xs font-bold mr-4 uppercase tracking-wider ${u.role === 'TEACHER' ? 'bg-purple-100/50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-green-100/50 dark:bg-green-900/30 text-green-700 dark:text-green-400'}`}>
                         {u.role}
                       </span>
-                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500 mr-4">Joined: {new Date(u.createdAt).toLocaleDateString()}</span>
+                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500 mr-4">Joined: {new Date(u.createdAt).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</span>
                       <button onClick={() => deleteUser(u.id)} className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors">
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -503,7 +503,7 @@ const AdminPortal = () => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Date</label>
                 <input 
                   type="date" 
-                  className="w-full sm:w-64 px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" 
+                  className="w-full sm:w-64 px-5 py-3 glass-panel border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-medium dark:text-white" 
                   value={incomeDate} 
                   onChange={(e) => setIncomeDate(e.target.value)} 
                 />

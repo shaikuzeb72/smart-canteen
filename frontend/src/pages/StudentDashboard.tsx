@@ -106,6 +106,7 @@ const StudentDashboard = () => {
   const handleAddToCart = async (productId: string) => {
     // Optimistic UI update
     toast.success('Added to cart!');
+    window.dispatchEvent(new Event('cartUpdated'));
     try {
       await apiClient.post('/cart', { productId, quantity: 1 });
     } catch (error: any) {

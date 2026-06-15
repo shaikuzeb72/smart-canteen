@@ -126,6 +126,7 @@ const Cart = () => {
     // Optimistic update
     const prevItems = [...cartItems];
     setCartItems(cartItems.map(i => i.id === id ? { ...i, quantity: newQty } : i));
+    window.dispatchEvent(new Event('cartUpdated'));
 
     try {
       await apiClient.put(`/cart/${id}`, { quantity: newQty });
@@ -139,6 +140,7 @@ const Cart = () => {
     // Optimistic update
     const prevItems = [...cartItems];
     setCartItems(cartItems.filter(i => i.id !== id));
+    window.dispatchEvent(new Event('cartUpdated'));
     toast.success('Item removed');
     
     try {
@@ -230,6 +232,7 @@ const Cart = () => {
 
   const executeCheckout = async () => {
     setIsConfirmModalOpen(false);
+    const loadingToast = toast.loading('Placing your order...');
 
     try {
       // 1. Create Order in Database
@@ -247,14 +250,15 @@ const Cart = () => {
       });
 
       if (paymentMode === 'COD') {
-        toast.success('Order Placed Successfully!');
-        toast.success('Cart Cleared');
+        toast.success('Order Placed Successfully!', { id: loadingToast });
+        window.dispatchEvent(new Event('cartUpdated'));
         navigate('/dashboard');
         return;
       }
 
       // ONLINE PAYMENT FLOW
-      const { data: rzpOrder } = await apiClient.post('/payment/create-order', { 
+      toast.loading('Initializing payment...', { id: loadingToast });
+      const { data: rzpOrder } = await apiClient.post('/orders/razorpay-create', { 
         amount: toPay,
         receipt: dbOrder.id
       });
@@ -275,16 +279,17 @@ const Cart = () => {
               razorpay_signature: response.razorpay_signature
             });
 
-            toast.success('Payment Successful! Order Placed Successfully!');
-            toast.success('Cart Cleared');
+            toast.success('Payment Successful! Order Placed Successfully!', { id: loadingToast });
+            window.dispatchEvent(new Event('cartUpdated'));
             navigate('/dashboard');
           } catch (err) {
-            toast.error('Payment verification failed');
+            console.error('Payment verification failed', err);
+            toast.error('Payment verification failed', { id: loadingToast });
           }
         },
         modal: {
           ondismiss: async function() {
-            toast.error('Payment Cancelled');
+            toast.error('Payment Cancelled', { id: loadingToast });
             try {
               await apiClient.put(`/orders/${dbOrder.id}/cancel`);
             } catch (err) {
@@ -295,16 +300,16 @@ const Cart = () => {
         prefill: {
           name: user?.name,
           email: user?.email,
-          contact: user?.mobile || '9999999999'
+          contact: address.mobileNumber
         },
         theme: { color: '#6366f1' }
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', async function (response: any){
-        toast.error('Payment Failed: ' + response.error.description);
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any){
+        toast.error(`Payment Failed: ${response.error.description}`, { id: loadingToast });
         try {
-          await apiClient.put(`/orders/${dbOrder.id}/cancel`);
+          apiClient.put(`/orders/${dbOrder.id}/cancel`);
         } catch (err) {
           console.error('Failed to cancel order', err);
         }
