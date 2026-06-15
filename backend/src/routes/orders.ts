@@ -59,6 +59,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         address: {
           create: {
             building: address.building,
+            className: address.className || null,
             room: address.room,
             instructions: address.instructions,
             mobileNumber: address.mobileNumber
@@ -75,7 +76,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         where: {
           userId,
           building: address.building,
-          room: address.room
+          room: address.room,
+          className: address.className || null
         }
       });
       if (!existingAddress) {
@@ -84,6 +86,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
             userId,
             building: address.building,
             floor: address.floor || null,
+            className: address.className || null,
             room: address.room,
             instructions: address.instructions,
             mobileNumber: address.mobileNumber

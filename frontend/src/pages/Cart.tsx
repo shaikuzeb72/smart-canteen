@@ -30,6 +30,7 @@ interface SavedAddress {
   id: string;
   building: string;
   floor: string | null;
+  className: string | null;
   room: string;
   instructions: string | null;
   mobileNumber: string | null;
@@ -64,7 +65,7 @@ const Cart = () => {
   const [paymentMode, setPaymentMode] = useState<'ONLINE' | 'COD'>('ONLINE');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  const [address, setAddress] = useState({ building: '', floor: '', room: '', instructions: '', mobileNumber: '' });
+  const [address, setAddress] = useState({ building: '', floor: '', className: '', room: '', instructions: '', mobileNumber: '' });
 
   const [settings, setSettings] = useState<any>({ deliveryFee: 10, platformFee: 5, gstPercent: 5, freeDeliveryThreshold: 149, isMaintenance: false });
 
@@ -73,6 +74,12 @@ const Cart = () => {
     fetchCoupons();
     fetchSavedAddresses();
     fetchSettings();
+
+    const handleCartUpdatedDb = () => {
+      fetchCart();
+    };
+    window.addEventListener('cartUpdatedDb', handleCartUpdatedDb);
+    return () => window.removeEventListener('cartUpdatedDb', handleCartUpdatedDb);
   }, []);
 
   const fetchSettings = async () => {
@@ -192,6 +199,7 @@ const Cart = () => {
       setAddress({
         building: selected.building,
         floor: selected.floor || '',
+        className: selected.className || '',
         room: selected.room,
         instructions: selected.instructions || '',
         mobileNumber: selected.mobileNumber || ''
@@ -243,6 +251,7 @@ const Cart = () => {
         address: {
           building: address.building,
           floor: address.floor,
+          className: address.className,
           room: address.room,
           instructions: address.instructions,
           mobileNumber: address.mobileNumber
@@ -423,13 +432,22 @@ const Cart = () => {
                     <div className="absolute z-10 inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <span className="text-xl">🚪</span>
                     </div>
-                    <input 
-                      type="text" 
-                      placeholder="Room Number / Specific Area" 
-                      className="w-full pl-12 pr-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
-                      value={address.room} 
-                      onChange={e => setAddress({...address, room: e.target.value})} 
-                    />
+                    <div className="flex space-x-4">
+                      <input 
+                        type="text" 
+                        placeholder="Class" 
+                        className="w-1/2 pl-12 pr-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
+                        value={address.className} 
+                        onChange={e => setAddress({...address, className: e.target.value})} 
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Room Number" 
+                        className="w-1/2 px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
+                        value={address.room} 
+                        onChange={e => setAddress({...address, room: e.target.value})} 
+                      />
+                    </div>
                   </div>
                   
                   <div className="relative">

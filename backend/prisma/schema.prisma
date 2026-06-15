@@ -73,6 +73,7 @@ model SavedAddress {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   building     String
   floor        String?
+  className    String?
   room         String
   instructions String?
   mobileNumber String?
@@ -94,6 +95,7 @@ model Address {
   orderId      String @unique
   order        Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   building     String
+  className    String?
   room         String
   instructions String?
   mobileNumber String?

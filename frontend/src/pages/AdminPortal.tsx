@@ -503,7 +503,7 @@ const AdminPortal = () => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Date</label>
                 <input 
                   type="date" 
-                  className="w-full sm:w-64 px-5 py-3 glass-panel border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-medium dark:text-white" 
+                  className="w-full sm:w-64 px-5 py-3 glass-panel rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold dark:text-white text-gray-900 border border-gray-300 dark:border-white/10 shadow-sm transition-all focus:border-primary-400 focus:shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
                   value={incomeDate} 
                   onChange={(e) => setIncomeDate(e.target.value)} 
                 />

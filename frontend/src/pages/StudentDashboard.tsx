@@ -109,6 +109,7 @@ const StudentDashboard = () => {
     window.dispatchEvent(new Event('cartUpdated'));
     try {
       await apiClient.post('/cart', { productId, quantity: 1 });
+      window.dispatchEvent(new Event('cartUpdatedDb'));
     } catch (error: any) {
       console.error('Failed to add to cart', error);
       toast.error(error.response?.data?.message || 'Failed to add to cart');
