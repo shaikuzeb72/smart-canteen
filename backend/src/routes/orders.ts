@@ -153,6 +153,37 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
   }
 });
 
+// Admin: Get Total Income by Date
+router.get('/income', authenticateToken, authorizeRoles('ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { date } = req.query;
+    if (!date) {
+      return res.status(400).json({ message: 'Date is required' });
+    }
+
+    const queryDate = new Date(String(date));
+    const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+
+    const orders = await prisma.order.findMany({
+      where: {
+        status: 'DELIVERED',
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay
+        }
+      }
+    });
+
+    const totalIncome = orders.reduce((acc, order) => acc + order.totalAmount, 0);
+
+    res.json({ totalIncome, deliveredCount: orders.length });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Get user's orders
 router.get('/my-orders', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

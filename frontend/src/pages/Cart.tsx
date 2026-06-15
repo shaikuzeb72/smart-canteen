@@ -122,20 +122,29 @@ const Cart = () => {
       toast.error(`Cannot add more. Only ${item.product.stock} left in stock.`);
       return;
     }
+    
+    // Optimistic update
+    const prevItems = [...cartItems];
+    setCartItems(cartItems.map(i => i.id === id ? { ...i, quantity: newQty } : i));
+
     try {
       await apiClient.put(`/cart/${id}`, { quantity: newQty });
-      fetchCart();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update quantity');
+    } catch (error) {
+      setCartItems(prevItems);
+      toast.error('Failed to update quantity');
     }
   };
 
   const removeItem = async (id: string) => {
+    // Optimistic update
+    const prevItems = [...cartItems];
+    setCartItems(cartItems.filter(i => i.id !== id));
+    toast.success('Item removed');
+    
     try {
       await apiClient.delete(`/cart/${id}`);
-      fetchCart();
-      toast.success('Item removed');
     } catch (error) {
+      setCartItems(prevItems);
       toast.error('Failed to remove item');
     }
   };

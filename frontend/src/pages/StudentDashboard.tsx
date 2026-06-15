@@ -104,13 +104,13 @@ const StudentDashboard = () => {
   }, []);
 
   const handleAddToCart = async (productId: string) => {
-    const loadingToast = toast.loading('Adding to cart...');
+    // Optimistic UI update
+    toast.success('Added to cart!');
     try {
       await apiClient.post('/cart', { productId, quantity: 1 });
-      toast.success('Added to cart!', { id: loadingToast });
     } catch (error: any) {
       console.error('Failed to add to cart', error);
-      toast.error(error.response?.data?.message || 'Failed to add to cart', { id: loadingToast });
+      toast.error(error.response?.data?.message || 'Failed to add to cart');
     }
   };
 

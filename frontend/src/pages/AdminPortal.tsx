@@ -56,6 +56,10 @@ const AdminPortal = () => {
   const [settings, setSettings] = useState<Settings>({ deliveryFee: 0, platformFee: 0, gstPercent: 0 });
   const [loading, setLoading] = useState(true);
 
+  // Total Income state
+  const [incomeDate, setIncomeDate] = useState(new Date().toISOString().split('T')[0]);
+  const [incomeData, setIncomeData] = useState<{ totalIncome: number; deliveredCount: number } | null>(null);
+
   // Modal States
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -82,8 +86,19 @@ const AdminPortal = () => {
     fetchData();
   }, [activeTab]);
 
+  useEffect(() => {
+    if (activeTab === 'income') {
+      fetchData();
+    }
+  }, [incomeDate]);
+
   const fetchData = async () => {
-    setLoading(true);
+    if ((activeTab === 'products' && products.length === 0) || 
+        (activeTab === 'users' && users.length === 0) || 
+        (activeTab === 'coupons' && coupons.length === 0)) {
+      setLoading(true);
+    }
+    
     try {
       if (activeTab === 'products') {
         const prodRes = await apiClient.get('/products');
@@ -97,6 +112,9 @@ const AdminPortal = () => {
       } else if (activeTab === 'settings') {
         const settingsRes = await apiClient.get('/settings');
         setSettings(settingsRes.data);
+      } else if (activeTab === 'income') {
+        const incomeRes = await apiClient.get(`/orders/income?date=${incomeDate}`);
+        setIncomeData(incomeRes.data);
       }
     } catch (error) {
       console.error('Failed to fetch data', error);
@@ -108,11 +126,15 @@ const AdminPortal = () => {
 
   const deleteProduct = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
+    
+    const prevProducts = [...products];
+    setProducts(products.filter(p => p.id !== id)); // Optimistic UI
+    
     try {
       await apiClient.delete(`/products/${id}`);
       toast.success('Product deleted successfully');
-      fetchData();
     } catch (error) {
+      setProducts(prevProducts); // Revert on failure
       toast.error('Failed to delete product');
     }
   };
@@ -177,21 +199,33 @@ const AdminPortal = () => {
     }
     
     const payload = { ...newProduct, price: parseFloat(newProduct.price), stock: parseInt(newProduct.stock) };
+    const prevProducts = [...products];
+    const isEditing = !!editingProductId;
+    
+    // Optimistic UI update
+    if (isEditing) {
+      setProducts(products.map(p => p.id === editingProductId ? { ...p, ...payload, id: editingProductId } : p) as Product[]);
+    } else {
+      const tempId = `temp-${Date.now()}`;
+      setProducts([{ ...payload, id: tempId } as Product, ...products]);
+    }
+
+    setIsProductModalOpen(false);
+    setEditingProductId(null);
+    setNewProduct({ name: '', price: '', stock: '', category: '', imageUrl: '', description: '', weight: '' });
     
     try {
-      if (editingProductId) {
+      if (isEditing) {
         await apiClient.put(`/products/${editingProductId}`, payload);
         toast.success('Product updated successfully');
       } else {
         await apiClient.post('/products', payload);
         toast.success('Product added successfully');
       }
-      setIsProductModalOpen(false);
-      setEditingProductId(null);
-      setNewProduct({ name: '', price: '', stock: '', category: '', imageUrl: '', description: '', weight: '' });
-      fetchData();
+      fetchData(); // Sync exact server state
     } catch (error) {
-      toast.error('Failed to add product');
+      setProducts(prevProducts); // Revert on failure
+      toast.error(isEditing ? 'Failed to update product' : 'Failed to add product');
     }
   };
 
@@ -304,6 +338,10 @@ const AdminPortal = () => {
           <button onClick={() => setActiveTab('users')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all ${activeTab === 'users' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-bold shadow-inner' : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white'}`}>
             <Users className="w-5 h-5" />
             <span>Users</span>
+          </button>
+          <button onClick={() => setActiveTab('income')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all ${activeTab === 'income' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-bold shadow-inner' : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white'}`}>
+            <BarChart className="w-5 h-5" />
+            <span>Total Income</span>
           </button>
           <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all ${activeTab === 'settings' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-bold shadow-inner' : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-dark-800/50 hover:text-gray-900 dark:hover:text-white'}`}>
             <SettingsIcon className="w-5 h-5" />
@@ -454,6 +492,40 @@ const AdminPortal = () => {
                 {users.length === 0 && <div className="p-10 text-center text-gray-500 dark:text-gray-400 font-medium">No students registered yet.</div>}
               </ul>
             )}
+          </div>
+        )}
+
+        {activeTab === 'income' && (
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Total Income</h1>
+            <div className="glass-card rounded-3xl p-8 max-w-2xl">
+              <div className="mb-8">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Date</label>
+                <input 
+                  type="date" 
+                  className="w-full sm:w-64 px-5 py-3 glass-panel rounded-xl focus:ring-2 focus:ring-primary-500 outline-none font-medium dark:text-white" 
+                  value={incomeDate} 
+                  onChange={(e) => setIncomeDate(e.target.value)} 
+                />
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-10 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Calculating income...</div>
+              ) : incomeData ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg shadow-green-500/30">
+                    <h3 className="text-green-100 font-bold mb-1">Net Income (Delivered)</h3>
+                    <div className="text-4xl font-extrabold">₹{incomeData.totalIncome.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/30">
+                    <h3 className="text-blue-100 font-bold mb-1">Delivered Orders</h3>
+                    <div className="text-4xl font-extrabold">{incomeData.deliveredCount}</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500">No data available for this date.</div>
+              )}
+            </div>
           </div>
         )}
 
