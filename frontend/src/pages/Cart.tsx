@@ -522,8 +522,8 @@ const Cart = () => {
                     <div className="flex flex-col">
                       <span>Delivery Fee</span>
                       {deliveryFee > 0 && (
-                        <span className="text-xs text-primary-500 font-bold mt-0.5">
-                          Add ₹{(freeDeliveryLimit - eligibleTotal).toFixed(2)} more for FREE delivery!
+                        <span className="text-xs text-blue-600 dark:text-blue-400 font-bold mt-0.5">
+                          Free above ₹{freeDeliveryLimit} (Unlock by adding ₹{(freeDeliveryLimit - eligibleTotal).toFixed(2)} more)
                         </span>
                       )}
                     </div>
