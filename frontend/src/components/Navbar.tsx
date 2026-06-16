@@ -25,8 +25,16 @@ const Navbar = () => {
     fetchAddresses();
     fetchSuggestions();
     
-    const handleCartUpdate = () => fetchCartCount();
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const handleCartUpdate = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchCartCount();
+      }, 500);
+    };
+    
     window.addEventListener('cartUpdated', handleCartUpdate);
+    window.addEventListener('cartUpdatedDb', handleCartUpdate);
     
     const interval = setInterval(() => {
       fetchCartCount();
@@ -35,6 +43,8 @@ const Navbar = () => {
     return () => {
       clearInterval(interval);
       window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('cartUpdatedDb', handleCartUpdate);
+      clearTimeout(debounceTimer);
     };
   }, []);
 

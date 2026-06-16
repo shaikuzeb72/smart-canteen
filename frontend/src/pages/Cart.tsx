@@ -75,11 +75,20 @@ const Cart = () => {
     fetchSavedAddresses();
     fetchSettings();
 
+    let debounceTimer: ReturnType<typeof setTimeout>;
     const handleCartUpdatedDb = () => {
-      fetchCart();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchCart();
+      }, 500);
     };
     window.addEventListener('cartUpdatedDb', handleCartUpdatedDb);
-    return () => window.removeEventListener('cartUpdatedDb', handleCartUpdatedDb);
+    window.addEventListener('cartUpdated', handleCartUpdatedDb);
+    return () => {
+      window.removeEventListener('cartUpdatedDb', handleCartUpdatedDb);
+      window.removeEventListener('cartUpdated', handleCartUpdatedDb);
+      clearTimeout(debounceTimer);
+    };
   }, []);
 
   const fetchSettings = async () => {
@@ -358,8 +367,6 @@ const Cart = () => {
                   <img 
                     src={item.product.imageUrl || "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=100&h=100"} 
                     alt={item.product.name} 
-                    loading="lazy"
-                    decoding="async"
                     className="w-24 h-24 rounded-2xl object-cover drop-shadow-sm"
                   />
                   <div className="ml-5 flex-1">
