@@ -68,15 +68,22 @@ const StaffDashboard = () => {
 
   const handleCancelOrder = async () => {
     if (!cancellingOrderId) return;
+
+    // Optimistic Update
+    const prevOrders = [...orders];
+    setOrders(orders.map(order => order.id === cancellingOrderId ? { ...order, status: 'CANCELLED', cancellationReason: cancelReason } : order));
+    
+    setCancelModalOpen(false);
+    toast.success('Order Cancelled');
+
     try {
       await apiClient.put(`/orders/${cancellingOrderId}/staff-cancel`, { cancellationReason: cancelReason });
       fetchOrders();
-      setCancelModalOpen(false);
       setCancellingOrderId(null);
-      // We don't have toast imported, let's just log or we can import toast.
-      // Wait, let's just fetchOrders. It will update the UI.
     } catch (error) {
+      setOrders(prevOrders);
       console.error('Failed to cancel order', error);
+      toast.error('Failed to cancel order');
     }
   };
 

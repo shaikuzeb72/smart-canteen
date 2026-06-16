@@ -267,7 +267,7 @@ const Cart = () => {
 
       // ONLINE PAYMENT FLOW
       toast.loading('Initializing payment...', { id: loadingToast });
-      const { data: rzpOrder } = await apiClient.post('/orders/razorpay-create', { 
+      const { data: rzpOrder } = await apiClient.post('/payment/create-order', { 
         amount: toPay,
         receipt: dbOrder.id
       });

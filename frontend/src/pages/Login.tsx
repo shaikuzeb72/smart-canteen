@@ -108,6 +108,12 @@ const Login = () => {
         const loggedInUser = response.data.user;
         
         // Validate tab role
+        if (roleFromQuery === 'admin' && loggedInUser.role !== 'ADMIN') {
+          throw new Error('Invalid credentials. Please use the Admin login portal.');
+        }
+        if (roleFromQuery === 'staff' && loggedInUser.role !== 'STAFF' && loggedInUser.role !== 'TEACHER') {
+          throw new Error('Invalid credentials. Please use the Staff login portal.');
+        }
         if (roleFromQuery === 'student') {
           if (subRole === 'student' && loggedInUser.role !== 'STUDENT') {
             throw new Error('Invalid role. Please login from the Teacher tab.');
